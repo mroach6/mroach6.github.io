@@ -1,0 +1,66 @@
+<!--
+CISC 340 Project 2
+Team 6
+
+Listen to spark.publish() events here:
+https://api.spark.io/v1/devices/events?access_token=4cae21bba3ad6cfce52c347b96bb65bc4d3dbc46
+-->
+
+
+
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <!-- Bootstrap Core CSS -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="style.css" rel="stylesheet">
+	<link rel="stylesheet" href="animate.min.css">
+	
+	<title>340</title>
+
+</head>
+
+<body>
+	<div>
+		<h1>340 M.D.A.S.</h1>
+	</div>
+	<br><br>
+    <span id="motion"></span><br>
+
+    <br><br>
+	<button type="button" class="button" onClick="activate()">Activate Alarm</button>
+	<br><br>
+	<button type="button" class="button" onClick="deactivate()">Deactivate Alarm</button>
+
+    <script type="text/javascript">
+    function activate() {
+
+        document.getElementById("motion").innerHTML = "Alarm ON";
+        var deviceID = "54ff6f066672524819140167";
+        var accessToken = "4cae21bba3ad6cfce52c347b96bb65bc4d3dbc46";
+        var eventSource = new EventSource("https://api.spark.io/v1/devices/" + deviceID + "/events/?access_token=" + accessToken);
+		
+        eventSource.addEventListener('open', function(e) {
+            console.log("Opened!"); },false);
+
+        eventSource.addEventListener('error', function(e) {
+            console.log("Errored!"); },false);
+
+        eventSource.addEventListener('pir/motion_detected', function(e) {
+            var parsedData = JSON.parse(e.data);
+            var tempSpan = document.getElementById("motion");
+            tempSpan.innerHTML = "Motion detected!!";
+            tempSpan.style.fontSize = "50px";
+			var audio = new Audio('BOMB_SIREN.mp3');
+			audio.play();
+        }, false);
+    }
+	function deactivate() {
+		var tempSpan = document.getElementById("motion");
+        tempSpan.innerHTML = "Alarm OFF";
+		tempSpan.style.fontSize = "50px";
+    }
+    </script>
+</body>
+</html>

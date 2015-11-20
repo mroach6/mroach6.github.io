@@ -1,0 +1,30 @@
+/*
+CISC 340 Project 2
+Team 6
+
+CSS Style Sheet
+*/
+
+
+body {
+    text-align: center;
+	font-size: 50px;
+	color: white;
+	background-image: url("bg.jpg");
+}
+
+h1{
+	font-size: 70pt;
+	color: white;
+	padding-bottom:50px;
+	padding-top:100px;
+}
+
+#motion{
+	font-size:50px;
+}
+
+.button{
+	width: 650px;
+	color: black;
+}
