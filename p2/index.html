@@ -6,61 +6,132 @@ Listen to spark.publish() events here:
 https://api.spark.io/v1/devices/events?access_token=4cae21bba3ad6cfce52c347b96bb65bc4d3dbc46
 -->
 
-
-
 <!DOCTYPE HTML>
 <html>
 
 <head>
     <!-- Bootstrap Core CSS -->
-    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	<link href="style.css" rel="stylesheet">
-	<link rel="stylesheet" href="animate.min.css">
-	
-	<title>340</title>
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <link rel="stylesheet" href="animate.min.css">
+  
+  <title>340 M.D.A.S.</title>
 
 </head>
 
 <body>
-	<div>
-		<h1>340 M.D.A.S.</h1>
-	</div>
-	<br><br>
-    <span id="motion"></span><br>
+  <div>
+    <h1>340 M.D.A.S.</h1>
+  </div>
+    <br>
 
-    <br><br>
-	<button type="button" class="button" onClick="activate()">Activate Alarm</button>
-	<br><br>
-	<button type="button" class="button" onClick="deactivate()">Deactivate Alarm</button>
+  <div class="main-content">
 
-    <script type="text/javascript">
-    function activate() {
+    <!-- LEFT COLUMN -->
+    <div class="column">
+      <span id="motion"></span>
+	  <span class="animated infinite flash" id="motion_detected"></span><br>
+      <br><br>
 
-        document.getElementById("motion").innerHTML = "Alarm ON";
-        var deviceID = "54ff6f066672524819140167";
-        var accessToken = "4cae21bba3ad6cfce52c347b96bb65bc4d3dbc46";
-        var eventSource = new EventSource("https://api.spark.io/v1/devices/" + deviceID + "/events/?access_token=" + accessToken);
-		
-        eventSource.addEventListener('open', function(e) {
-            console.log("Opened!"); },false);
+      <button type="button" class="alarm-activate button" onClick="activate()">Activate Alarm</button>
+      <button type="button" class="alarm-deactivate button" onClick="deactivate()">Deactivate Alarm</button>
 
-        eventSource.addEventListener('error', function(e) {
-            console.log("Errored!"); },false);
+    </div>
 
-        eventSource.addEventListener('pir/motion_detected', function(e) {
-            var parsedData = JSON.parse(e.data);
-            var tempSpan = document.getElementById("motion");
-            tempSpan.innerHTML = "Motion detected!!";
-            tempSpan.style.fontSize = "50px";
-			var audio = new Audio('BOMB_SIREN.mp3');
-			audio.play();
-        }, false);
+    <!-- RIGHT COLUMN -->
+    <div class="column">
+      <textarea class="log" readonly rows="11"></textarea>
+    </div>
+
+  </div>
+
+  <br/>
+  View on&nbsp;<a href="https://github.com/skhzhang/particle-core-MDAS">Github</a>
+
+  <!-- JavaScript for detection -->
+  <script type="text/javascript">
+
+  // initialize log
+  var log = document.getElementsByClassName("log")[0];
+  var alarmActivateButton = document.getElementsByClassName("alarm-activate")[0];
+  var alarmDeactivateButton = document.getElementsByClassName("alarm-deactivate")[0];
+  var audio = new Audio('BOMB_SIREN.mp3');
+  
+  alarmDeactivateButton.disabled = true;
+
+  // default to false; cache keeps button disabled on refresh
+  alarmActivateButton.disabled = false;
+  alarmDeactivateButton.disabled = false;
+  var eventSource = null;
+  // activate alarm system and detection
+  function activate() {
+
+      document.getElementById("motion").innerHTML = "Alarm ON";
+      var deviceID = "54ff6f066672524819140167";
+      var accessToken = "4cae21bba3ad6cfce52c347b96bb65bc4d3dbc46";
+
+      if (eventSource != null) {
+          eventSource.close();
+      }
+      
+      eventSource = new EventSource("https://api.spark.io/v1/devices/" + deviceID + "/events/?access_token=" + accessToken);
+          
+      log.scrollTop = 0; // scroll back to top
+
+      // log alarm turned on
+      var currentTimeString = new Date().toLocaleString("en-US");
+      log.innerHTML = currentTimeString + " - Alarm turned on\n" + log.innerHTML;
+
+      // motion detected
+      eventSource.addEventListener('pir/motion_detected', function(e) {
+          var parsedData = JSON.parse(e.data);
+          var tempSpan = document.getElementById("motion_detected");
+          tempSpan.innerHTML = "Motion detected!!";
+		  document.getElementById("motion").innerHTML = "";
+          tempSpan.style.fontSize = "50px";
+          audio.play();
+
+          // log motion detected
+          var currentTime2String = new Date().toLocaleString("en-US");
+          log.innerHTML = currentTime2String + " - Motion detected\n" + log.innerHTML;
+      }, false);
+
+      // disable button if pressed, enable other button
+      alarmActivateButton.disabled = true;
+      alarmDeactivateButton.disabled = false;
+
+  }
+
+  // deactivate alarm system and detection
+  function deactivate() {
+  
+	eventSource.close();
+	
+    audio.pause();
+    audio.currentTime = 0;
+	
+    var temp = document.getElementById("motion");
+	var temp2 = document.getElementById("motion_detected");
+    temp.innerHTML = "Alarm OFF";
+	temp2.innerHTML = "";
+    //tempSpan.style.fontSize = "50px";
+
+    log.scrollTop = 0; // scroll back to top
+
+    // log time
+    var currentTime2String = new Date().toLocaleString("en-US");
+    log.innerHTML = currentTime2String + " - Alarm turned off\n" + log.innerHTML;
+
+    // disable button if pressed, enable other button
+    alarmActivateButton.disabled = false;
+    alarmDeactivateButton.disabled = true;
+	
+	if (eventSource != null) {
+        eventSource.close();
+        eventSource = null;
     }
-	function deactivate() {
-		var tempSpan = document.getElementById("motion");
-        tempSpan.innerHTML = "Alarm OFF";
-		tempSpan.style.fontSize = "50px";
-    }
-    </script>
+  }
+
+  </script>
 </body>
 </html>
